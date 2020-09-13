@@ -214,17 +214,20 @@ bool CheckDataSignatureEncoding(const valtype &vchSig, uint32_t flags,
 static bool CheckSighashEncoding(const valtype &vchSig, uint32_t flags,
                                  ScriptError *serror) {
     if (flags & SCRIPT_VERIFY_STRICTENC) {
-        if (!GetHashType(vchSig).isDefined()) {
+        const auto hashType = GetHashType(vchSig);
+        if (!hashType.isDefined()) {
             return set_error(serror, ScriptError::SIG_HASHTYPE);
         }
 
-        bool usesForkId = GetHashType(vchSig).hasForkId();
+        bool usesForkId = hashType.hasForkId();
         bool forkIdEnabled = flags & SCRIPT_ENABLE_SIGHASH_FORKID;
         if (!forkIdEnabled && usesForkId) {
             return set_error(serror, ScriptError::ILLEGAL_FORKID);
         }
 
-        if (forkIdEnabled && !usesForkId) {
+        bool optionalReplayProtectionEnabled =
+            flags & SCRIPT_ENABLE_OPTIONAL_REPLAY_PROTECTION;
+        if (forkIdEnabled && !usesForkId && !optionalReplayProtectionEnabled) {
             return set_error(serror, ScriptError::MUST_USE_FORKID);
         }
     }
