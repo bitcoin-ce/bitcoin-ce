@@ -1601,6 +1601,11 @@ static uint32_t GetNextBlockScriptFlags(const Consensus::Params &params,
         flags |= SCRIPT_ENFORCE_SIGCHECKS;
     }
 
+    // Optional replay protection is enabled after Axion
+    if (IsAxionEnabled(params, pindex)) {
+        flags |= SCRIPT_ENABLE_OPTIONAL_REPLAY_PROTECTION;
+    }
+
     return flags;
 }
 

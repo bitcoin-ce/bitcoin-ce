@@ -84,6 +84,9 @@ enum {
     //
     SCRIPT_ENABLE_SIGHASH_FORKID = (1U << 16),
 
+    // Do we accept activate replay protection using a different fork id.
+    SCRIPT_ENABLE_OPTIONAL_REPLAY_PROTECTION = (1U << 17),
+
     // The exception to CLEANSTACK and P2SH for the recovery of coins sent
     // to p2sh segwit addresses is not allowed.
     SCRIPT_DISALLOW_SEGWIT_RECOVERY = (1U << 20),

@@ -1493,10 +1493,26 @@ uint256 SignatureHash(const CScript &scriptCode, const T &txTo,
                       const PrecomputedTransactionData *cache, uint32_t flags) {
     assert(nIn < txTo.vin.size());
 
-    if (sigHashType.hasForkId() && (flags & SCRIPT_ENABLE_SIGHASH_FORKID)) {
+    // NOTE:
+    // SCRIPT_ENABLE_OPTIONAL_REPLAY_PROTECTION changes the behavior of FORKID
+    // to *ADD* a unique forkid, instead of zero.
+    // SCRIPT_ENABLE_OPTIONAL_REPLAY_PROTECTION is enabled in the "Axion"
+    // hardfork. Prior to this, the legacy Bitcoin sighash format is used
+    //
+    // In the future, the legacy fork format code below this block could be
+    // removed because all signatures are assumed to be valid.
+    if ((sigHashType.hasForkId() && (flags & SCRIPT_ENABLE_SIGHASH_FORKID)) ||
+        flags & SCRIPT_ENABLE_OPTIONAL_REPLAY_PROTECTION) {
         uint256 hashPrevouts;
         uint256 hashSequence;
         uint256 hashOutputs;
+
+        // This can't happen if SCRIPT_ENABLE_OPTIONAL_REPLAY_PROTECTION isn't
+        // enabled anyways, but condition placed here to be verbose.
+        if (!sigHashType.hasForkId() &&
+            (flags & SCRIPT_ENABLE_OPTIONAL_REPLAY_PROTECTION)) {
+            sigHashType = sigHashType.withForkValue(REPLAY_PROTECC_ID);
+        }
 
         if (!sigHashType.hasAnyoneCanPay()) {
             hashPrevouts = cache ? cache->hashPrevouts : GetPrevoutHash(txTo);
